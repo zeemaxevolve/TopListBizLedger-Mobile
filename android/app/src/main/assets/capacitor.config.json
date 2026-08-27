@@ -1,0 +1,11 @@
+{
+	"appId": "com.toplistchemicals.bizledger",
+	"appName": "TopList BizLedger",
+	"webDir": "www",
+	"android": {
+		"allowMixedContent": false
+	},
+	"server": {
+		"androidScheme": "https"
+	}
+}
