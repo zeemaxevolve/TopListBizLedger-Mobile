@@ -578,6 +578,10 @@ function GlobalStyle() {
       .cfe .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
       .cfe .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
       .cfe .form-grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+      .cfe .dashboard-kpi-grid { grid-template-columns: repeat(4, 1fr); }
+      .cfe .dashboard-content-grid { grid-template-columns: 1.3fr 1fr; }
+      .cfe .party-kpi-grid { grid-template-columns: repeat(4, 1fr); }
+      .cfe .reports-aging-grid { grid-template-columns: repeat(5, 1fr); }
       .cfe .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
       .cfe .tab-bar-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
       .cfe .tab-bar-scroll::-webkit-scrollbar { display: none; }
@@ -1071,7 +1075,7 @@ function Dashboard({ db, go }) {
           subtitle="This is a blank workspace — add your first customer to start raising Proforma Invoices, Invoices, and Waybills."
           action={<button className="btn btn-primary" onClick={() => go("customers")}>Add your first customer <ArrowRight size={14} /></button>} />
       )}
-      <div className="dashboard-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginTop: hasData ? 0 : 18 }}>
+      <div className="dashboard-kpi-grid" style={{ display: "grid", gap: 14, marginTop: hasData ? 0 : 18 }}>
         {kpis.map((k) => (
           <div key={k.label} className="card kpi">
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -1083,7 +1087,7 @@ function Dashboard({ db, go }) {
         ))}
       </div>
 
-      <div className="dashboard-content-grid" style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 14, marginTop: 14 }}>
+      <div className="dashboard-content-grid" style={{ display: "grid", gap: 14, marginTop: 14 }}>
         <div className="card" style={{ padding: 18 }}>
           <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 10 }}>Recent Documents</div>
           {recentDocs.length === 0 ? (
@@ -1182,7 +1186,7 @@ function PartyDetail({ db, party, onClose }) {
         {party.city_state && <div>{party.city_state}</div>}
       </div>
 
-      <div className="party-kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, margin: "14px 0" }}>
+      <div className="party-kpi-grid" style={{ display: "grid", gap: 10, margin: "14px 0" }}>
         <div className="card kpi" style={{ padding: 12 }}>
           <div style={{ fontSize: 11, color: TOKENS.mute, fontWeight: 600 }}>Proforma Invoices</div>
           <div className="val" style={{ fontSize: 18 }}>{docs.filter((d) => d.type === "PROFORMA").length}</div>
@@ -1847,7 +1851,7 @@ function Reports({ db }) {
   return (
     <div>
       <SectionHeader title="Reports" subtitle="Accounts receivable aging — who owes what, and how overdue." />
-      <div className="reports-aging-grid" style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10, marginBottom: 18 }}>
+      <div className="reports-aging-grid" style={{ display: "grid", gap: 10, marginBottom: 18 }}>
         {buckets.map((b, i) => (
           <div key={b} className="card kpi">
             <div style={{ fontSize: 11.5, color: TOKENS.mute, fontWeight: 600 }}>{b}</div>
