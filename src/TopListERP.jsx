@@ -2152,6 +2152,25 @@ export default function TopListBizLedger() {
           loaded.settings._footerVendorMigrationDone = true;
           migrated = true;
         }
+        // One-time fix: the Signature and Stamp fields, and their default
+        // images, were added after some installations already existed —
+        // existing saved settings simply never had them, so they'd show as
+        // permanently empty even after this update. Only fills in a field
+        // that's currently empty, so it can never overwrite an image
+        // someone has actually uploaded themselves.
+        if (loaded.settings && !loaded.settings._signatureStampMigrationDone) {
+          const defaults = defaultSettings();
+          if (!loaded.settings.signature) {
+            loaded.settings.signature = defaults.signature;
+            migrated = true;
+          }
+          if (!loaded.settings.stamp) {
+            loaded.settings.stamp = defaults.stamp;
+            migrated = true;
+          }
+          loaded.settings._signatureStampMigrationDone = true;
+          migrated = true;
+        }
         dbLoadedRef.current = true;
         setDb(loaded);
         if (migrated) persistToStorage(loaded);
