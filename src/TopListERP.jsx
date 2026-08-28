@@ -582,6 +582,13 @@ function GlobalStyle() {
       .cfe .dashboard-content-grid { grid-template-columns: 1.3fr 1fr; }
       .cfe .party-kpi-grid { grid-template-columns: repeat(4, 1fr); }
       .cfe .reports-aging-grid { grid-template-columns: repeat(5, 1fr); }
+      /* Grid items default to min-width:auto, which refuses to shrink below
+         their content's natural width — a wide table inside a grid cell
+         would otherwise force the whole grid (and page) wider than the
+         viewport instead of letting that cell's own overflow-x:auto
+         contain it. This keeps every grid cell shrinkable to its track. */
+      .cfe .dashboard-content-grid > *, .cfe .dashboard-kpi-grid > *,
+      .cfe .party-kpi-grid > *, .cfe .reports-aging-grid > * { min-width: 0; }
       .cfe .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
       .cfe .tab-bar-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
       .cfe .tab-bar-scroll::-webkit-scrollbar { display: none; }
@@ -1113,7 +1120,7 @@ function Dashboard({ db, go }) {
       </div>
 
       <div className="dashboard-content-grid" style={{ display: "grid", gridTemplateColumns: contentCols === 1 ? "1fr" : "1.3fr 1fr", gap: 14, marginTop: 14 }}>
-        <div className="card" style={{ padding: 18 }}>
+        <div className="card" style={{ padding: 18, minWidth: 0 }}>
           <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 10 }}>Recent Documents</div>
           {recentDocs.length === 0 ? (
             <div style={{ color: TOKENS.mute, fontSize: 13 }}>No sales documents yet.</div>
