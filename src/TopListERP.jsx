@@ -671,15 +671,20 @@ function statusTone(status) {
   return "default";
 }
 
-function Modal({ title, onClose, children, wide }) {
+function Modal({ title, onClose, children, wide, footer }) {
   return (
     <div className="modal-overlay no-print" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal-box" style={{ maxWidth: wide ? 920 : 720, marginTop: 20 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: `1px solid ${TOKENS.line}` }}>
+      <div className="modal-box" style={{ maxWidth: wide ? 920 : 720, marginTop: 20, maxHeight: "88vh", display: "flex", flexDirection: "column" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: `1px solid ${TOKENS.line}`, flexShrink: 0 }}>
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>{title}</h3>
           <button className="btn btn-ghost btn-sm" onClick={onClose}><X size={15} /></button>
         </div>
-        <div style={{ padding: 20 }}>{children}</div>
+        <div className="modal-body-scroll" style={{ padding: 20, overflowY: "auto", flex: 1, minHeight: 0 }}>{children}</div>
+        {footer && (
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "14px 20px", borderTop: `1px solid ${TOKENS.line}`, flexShrink: 0 }}>
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1171,7 +1176,14 @@ function PartyForm({ title, initial, onSave, onClose, showCredit }) {
   const [f, setF] = useState(initial || { name: "", address: "", city_state: "", phone: "", email: "", credit_limit: "" });
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
   return (
-    <Modal title={title} onClose={onClose}>
+    <Modal title={title} onClose={onClose}
+      footer={
+        <>
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" disabled={!f.name} onClick={() => onSave(f)}>Save</button>
+        </>
+      }
+    >
       <div className="form-grid-2">
         <Field label="Name"><input type="text" value={f.name} onChange={set("name")} /></Field>
         <Field label="Phone"><input type="tel" value={f.phone} onChange={set("phone")} /></Field>
@@ -1179,10 +1191,6 @@ function PartyForm({ title, initial, onSave, onClose, showCredit }) {
         <Field label="City / State"><input type="text" value={f.city_state} onChange={set("city_state")} /></Field>
         <Field label="Email"><input type="email" value={f.email} onChange={set("email")} /></Field>
         {showCredit && <Field label="Credit Limit (NGN)"><input type="number" value={f.credit_limit} onChange={set("credit_limit")} /></Field>}
-      </div>
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 8 }}>
-        <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-        <button className="btn btn-primary" disabled={!f.name} onClick={() => onSave(f)}>Save</button>
       </div>
     </Modal>
   );
@@ -1326,9 +1334,10 @@ function PartyList({ db, mutate, kind }) {
  *  expanded input, and pressing Enter does the same thing, so there's
  *  always a clear, deliberate way to say "done typing this number" and
  *  dismiss the keyboard, rather than having to tap elsewhere and hope. */
-function ExpandingCellInput({ type, value, onChange, placeholder, align }) {
+function ExpandingCellInput({ type, value, onChange, placeholder }) {
   const [focused, setFocused] = useState(false);
   const inputRef = useRef(null);
+  const EXPANDED_WIDTH = 220;
 
   const confirm = () => { if (inputRef.current) inputRef.current.blur(); };
 
@@ -1345,26 +1354,31 @@ function ExpandingCellInput({ type, value, onChange, placeholder, align }) {
         onBlur={() => setFocused(false)}
         onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); confirm(); } }}
         style={focused ? {
-          position: "absolute", top: -6, left: align === "right" ? "auto" : -6, right: align === "right" ? -6 : "auto",
-          zIndex: 30, minWidth: 130, fontSize: 16, padding: "9px 34px 9px 10px",
-          background: "#fff", boxShadow: "0 4px 16px rgba(14,26,50,0.25)", border: `1.5px solid ${TOKENS.brand}`, borderRadius: 6,
+          position: "fixed", top: 96, left: "50%", transform: "translateX(-50%)",
+          zIndex: 130, width: EXPANDED_WIDTH, textAlign: "center", fontSize: 18, padding: "12px 40px 12px 14px",
+          background: "#fff", boxShadow: "0 8px 28px rgba(14,26,50,0.35)", border: `2px solid ${TOKENS.brand}`, borderRadius: 8,
         } : undefined}
       />
       {focused && (
-        <button
-          type="button"
-          onMouseDown={(e) => e.preventDefault()} // keep the input focused until our own blur logic runs
-          onClick={confirm}
-          aria-label="Done"
-          style={{
-            position: "absolute", top: -6, zIndex: 31, height: 34, width: 26,
-            right: align === "right" ? -6 : "auto", left: align === "right" ? "auto" : 92,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            background: TOKENS.brand, border: "none", borderTopRightRadius: 6, borderBottomRightRadius: 6, cursor: "pointer",
-          }}
-        >
-          <Check size={14} color="#fff" />
-        </button>
+        <>
+          <div
+            onClick={confirm}
+            style={{ position: "fixed", inset: 0, zIndex: 120, background: "rgba(14,26,50,0.15)" }}
+          />
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()} // keep the input focused until our own blur logic runs
+            onClick={confirm}
+            aria-label="Done"
+            style={{
+              position: "fixed", top: 96, left: `calc(50% + ${EXPANDED_WIDTH / 2 - 40}px)`, zIndex: 131, height: 44, width: 40,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: TOKENS.brand, border: "none", borderTopRightRadius: 8, borderBottomRightRadius: 8, cursor: "pointer",
+            }}
+          >
+            <Check size={16} color="#fff" />
+          </button>
+        </>
       )}
     </div>
   );
@@ -1403,7 +1417,7 @@ function LineItemsEditor({ lines, setLines, withRate = true }) {
                 </td>
                 {withRate && (
                   <td>
-                    <ExpandingCellInput type="number" value={l.rate} align="right" onChange={(e) => updateLine(i, { rate: e.target.value })} />
+                    <ExpandingCellInput type="number" value={l.rate} onChange={(e) => updateLine(i, { rate: e.target.value })} />
                   </td>
                 )}
                 {withRate && <td className="mono" style={{ textAlign: "right" }}>{fmtMoney((Number(l.qty) || 0) * (Number(l.rate) || 0))}</td>}
@@ -1432,7 +1446,14 @@ function ProformaForm({ db, initial, onSave, onClose }) {
   const canSave = customer_id && lines.length > 0 && lines.every((l) => l.description && Number(l.qty) > 0 && Number(l.rate) >= 0);
 
   return (
-    <Modal title={isEdit ? `Edit Proforma ${initial.number}` : "New Proforma Invoice"} onClose={onClose} wide>
+    <Modal title={isEdit ? `Edit Proforma ${initial.number}` : "New Proforma Invoice"} onClose={onClose} wide
+      footer={activeCustomers.length > 0 && (
+        <>
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" disabled={!canSave} onClick={() => onSave({ customer_id, subject, origin_of_goods, valid_days: Number(valid_days), vat_exempt: !applyVat, vat_rate_override: applyVat ? Number(vatRate) || 0 : 0, lines: lines.map((l) => ({ ...l, qty: Number(l.qty), rate: Number(l.rate) })) })}>{isEdit ? "Save Changes" : "Save Proforma"}</button>
+        </>
+      )}
+    >
       {activeCustomers.length === 0 ? (
         <EmptyState icon={FileText} title="Add a customer first" subtitle="A Proforma Invoice needs at least one customer." />
       ) : (
@@ -1465,10 +1486,6 @@ function ProformaForm({ db, initial, onSave, onClose }) {
                 <tr style={{ fontWeight: 700 }}><td>Amount Payable</td><td className="mono" style={{ textAlign: "right" }}>{fmtMoney(totals.total)}</td></tr>
               </tbody>
             </table>
-          </div>
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 8 }}>
-            <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-            <button className="btn btn-primary" disabled={!canSave} onClick={() => onSave({ customer_id, subject, origin_of_goods, valid_days: Number(valid_days), vat_exempt: !applyVat, vat_rate_override: applyVat ? Number(vatRate) || 0 : 0, lines: lines.map((l) => ({ ...l, qty: Number(l.qty), rate: Number(l.rate) })) })}>{isEdit ? "Save Changes" : "Save Proforma"}</button>
           </div>
         </>
       )}
@@ -1522,7 +1539,14 @@ function WaybillForm({ db, invoice, initial, onSave, onClose }) {
   };
 
   return (
-    <Modal title={isEdit ? `Edit Waybill ${initial.number}` : `Generate Waybill for ${invoice.number}`} onClose={onClose} wide>
+    <Modal title={isEdit ? `Edit Waybill ${initial.number}` : `Generate Waybill for ${invoice.number}`} onClose={onClose} wide
+      footer={
+        <>
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" onClick={save}>{isEdit ? "Save Changes" : "Generate Waybill"}</button>
+        </>
+      }
+    >
       <div className="form-grid-2">
         <Field label="Delivery Address"><input type="text" value={f.delivery_address} onChange={set("delivery_address")} /></Field>
         <Field label="Mode of Transport"><select value={f.mode_of_transport} onChange={set("mode_of_transport")}>{["Road", "Sea", "Air", "Rail"].map((m) => <option key={m}>{m}</option>)}</select></Field>
@@ -1552,11 +1576,6 @@ function WaybillForm({ db, invoice, initial, onSave, onClose }) {
           </tbody>
         </table>
       </div>
-
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
-        <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-        <button className="btn btn-primary" onClick={save}>{isEdit ? "Save Changes" : "Generate Waybill"}</button>
-      </div>
     </Modal>
   );
 
@@ -1568,16 +1587,19 @@ function PaymentForm({ invoice, onSave, onClose }) {
   const [date, setDate] = useState(todayISO());
   const [payment_method, setPaymentMethod] = useState("Bank Transfer");
   return (
-    <Modal title={`Record Payment — ${invoice.number}`} onClose={onClose}>
+    <Modal title={`Record Payment — ${invoice.number}`} onClose={onClose}
+      footer={
+        <>
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" disabled={!Number(amount)} onClick={() => onSave(Number(amount), date, payment_method)}>Record Payment</button>
+        </>
+      }
+    >
       <div style={{ fontSize: 13, color: TOKENS.mute, marginBottom: 10 }}>Balance due: <b className="mono" style={{ color: TOKENS.ink }}>NGN {fmtMoney(balance)}</b></div>
       <div className="form-grid-2">
         <Field label="Amount Received (NGN)"><input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} /></Field>
         <Field label="Date"><input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></Field>
         <Field label="Payment Method"><select value={payment_method} onChange={(e) => setPaymentMethod(e.target.value)}>{["Bank Transfer", "Cash", "Cheque", "POS/Card", "Other"].map((m) => <option key={m}>{m}</option>)}</select></Field>
-      </div>
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 8 }}>
-        <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-        <button className="btn btn-primary" disabled={!Number(amount)} onClick={() => onSave(Number(amount), date, payment_method)}>Record Payment</button>
       </div>
     </Modal>
   );
@@ -1596,7 +1618,14 @@ function InvoiceForm({ db, onSave, onClose }) {
   const canSave = customer_id && lines.length > 0 && lines.every((l) => l.description && Number(l.qty) > 0 && Number(l.rate) >= 0);
 
   return (
-    <Modal title="New Invoice" onClose={onClose} wide>
+    <Modal title="New Invoice" onClose={onClose} wide
+      footer={activeCustomers.length > 0 && (
+        <>
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" disabled={!canSave} onClick={() => onSave({ customer_id, subject, origin_of_goods, due_days: Number(due_days), vat_exempt: !applyVat, vat_rate_override: applyVat ? Number(vatRate) || 0 : 0, lines: lines.map((l) => ({ ...l, qty: Number(l.qty), rate: Number(l.rate) })) })}>Save Invoice</button>
+        </>
+      )}
+    >
       {activeCustomers.length === 0 ? (
         <EmptyState icon={Receipt} title="Add a customer first" subtitle="An Invoice needs at least one customer." />
       ) : (
@@ -1632,10 +1661,6 @@ function InvoiceForm({ db, onSave, onClose }) {
                 <tr style={{ fontWeight: 700 }}><td>Grand Total</td><td className="mono" style={{ textAlign: "right" }}>{fmtMoney(totals.total)}</td></tr>
               </tbody>
             </table>
-          </div>
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 8 }}>
-            <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-            <button className="btn btn-primary" disabled={!canSave} onClick={() => onSave({ customer_id, subject, origin_of_goods, due_days: Number(due_days), vat_exempt: !applyVat, vat_rate_override: applyVat ? Number(vatRate) || 0 : 0, lines: lines.map((l) => ({ ...l, qty: Number(l.qty), rate: Number(l.rate) })) })}>Save Invoice</button>
           </div>
         </>
       )}
